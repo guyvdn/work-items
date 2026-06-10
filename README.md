@@ -2,6 +2,8 @@
 
 A themed terminal dashboard for the GitHub issues and pull requests assigned to you.
 
+![work-items — a Dracula-themed terminal dashboard of your assigned GitHub issues and pull requests, grouped by project-board status](docs/screenshot.png)
+
 `work-items` is a single, self-contained PowerShell function that lists your open issues and PRs in
 a scrollable, boxed terminal UI — grouped by project-board status, colour-matched to your terminal
 theme, and wired to hand work off to [Claude Code](https://www.anthropic.com/claude-code) with a
