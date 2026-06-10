@@ -123,6 +123,31 @@ Gotchas:
 - Add a *second* public command? Add it to both `FunctionsToExport` and the psm1's
   `Export-ModuleMember`. Otherwise keep the public surface to the one function.
 
+## Recipe: regenerate the README screenshot
+
+`docs\screenshot.png` is a **mock**, not a capture of the live tool — the real TUI can't be
+screenshotted (see headless limits below), and a real capture would leak internal issue titles/org
+into a now-public repo. Rebuild it from a small self-contained HTML file rendered headlessly:
+
+- **Layout = a `<pre>` of the same lines the tool draws**, each coloured token wrapped in a `<span>`
+  class. Compute every row's trailing pad from the **plain-text** length (excluding the span tags)
+  against a fixed `INNER` width, or the `│` right borders won't line up. Build the boxes in JS so the
+  padding math is exact rather than hand-counting dashes.
+- **Colours map to the tool's ANSI roles, not arbitrary hex** — keep the mock honest. For the Dracula
+  mock: borders/headers (`C-Purple` / ANSI blue slot) → `#bd93f9`, item ids (yellow) → `#f1fa8c`,
+  cursor (magenta) → `#ff79c6`, dim/stale (faint) → `#6272a4`, fg `#f8f8f2`, bg `#282a36`.
+- **Windows Terminal chrome:** a tab strip plus window buttons drawn from the **Segoe MDL2 Assets**
+  font (minimise `E921`, maximise `E922`, close `E8BB`, new-tab `E710`, chevron `E70D`). Use a
+  **Cascadia Code** font stack on the `<pre>` so the box-drawing glyphs (`╭ ╮ ╰ ╯ │ ◆ ↑ ↓ ↵`) render —
+  that font is exactly what makes them render in real Windows Terminal, so the mock doubles as proof
+  the glyphs are safe.
+- **Use sanitized sample data** (fake issue titles/numbers) — never real boards, same reason as the
+  no-real-names golden rule.
+- **Rendering:** Playwright blocks `file://`, so serve the folder over localhost
+  (`python -m http.server <port>` from `docs\`) and navigate to `http://localhost:<port>/...`
+  (cache-bust with `?v=N` between iterations). The PNG saves into the MCP output dir; find it with
+  Glob, move it to `docs\screenshot.png`. Only the PNG is committed — delete the scratch HTML after.
+
 ## Testing & headless limits
 
 - **Parse check** (safe, fast):
