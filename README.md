@@ -9,18 +9,6 @@ a scrollable, boxed terminal UI — grouped by project-board status, colour-matc
 theme, and wired to hand work off to [Claude Code](https://www.anthropic.com/claude-code) with a
 keystroke.
 
-```
-  ◆ W O R K   I T E M S                        ↑  ↓
-  ╭── In Progress (2) ───────────────────────────────╮
-  │ > 1234  Wire up the export endpoint              │
-  │   1230  Flaky integration test on CI             │
-  ╰──────────────────────────────────────────────────╯
-  ╭── Pull Requests (1) ─────────────────────────────╮
-  │     67  Review: tidy up the order module         │
-  ╰──────────────────────────────────────────────────╯
-  [↑↓] Navigate  [↵] Open  [C] Code  [N] New  [R] Refresh  [Q] Quit
-```
-
 ## Features
 
 - **One glance, all your work** — assigned issues, assigned PRs, and PRs awaiting your review, in one
