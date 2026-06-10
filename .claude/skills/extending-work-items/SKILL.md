@@ -107,6 +107,13 @@ fork. To release:
 3. **Publish:** `$env:PSGALLERY_KEY = '<key>'; .\build\publish.ps1`. Never commit the key (scope it to
    the `guyvdn-work-items` package on the Gallery).
 4. Refresh `ReleaseNotes` in the manifest's `PSData` when the change is user-visible.
+5. **Tag + GitHub release** so git history and the Gallery stay aligned. After a successful publish,
+   tag the built commit `vX.Y.Z` and mirror it on GitHub (push under the repo-owner account, then
+   switch back — see the bottom of this file):
+   ```powershell
+   git tag -a vX.Y.Z -m "vX.Y.Z" <commit>; git push origin vX.Y.Z
+   gh release create vX.Y.Z -R guyvdn/work-items --title vX.Y.Z --notes '<notes>'
+   ```
 
 Gotchas:
 - `FunctionsToExport` must stay an **explicit** `@('work-items')` (not `'*'`) — that's what makes the

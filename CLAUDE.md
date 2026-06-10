@@ -83,5 +83,8 @@ Gallery module. Keep that single-source rule — never fork logic into the modul
   `$env:PSGALLERY_KEY` set (key from the Gallery account; never commit it).
 - **Gallery versions are immutable** — you cannot overwrite a published version. Always bump
   `ModuleVersion` before a real publish.
+- **Tag releases to match the Gallery.** After publishing X.Y.Z, tag `vX.Y.Z` at the built commit and
+  create a matching GitHub release, so git history and the Gallery version line up (`v0.1.0` was the
+  first). The git tag/release push uses the repo-owner account, like any other push here.
 - The function name `work-items` isn't `Verb-Noun`, so `Import-Module`/publish emit a cosmetic
   "unapproved verbs" warning. Expected; don't rename the command to silence it.
