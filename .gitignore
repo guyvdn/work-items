@@ -1,0 +1,22 @@
+# Runtime configuration lives in your HOME directory, never in this repo:
+#   ~/.work-items.json          (repo root, org, project numbers, statuses, ...)
+#   ~/.work-items.prompts.json  (the Claude hand-off prompt templates)
+# Nothing below references them - they are listed here only as a reminder.
+
+# OS / editor cruft
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*~
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+
+# IDE / build output (not used by this project, but harmless to ignore)
+.vs/
+.vscode/
+bin/
+obj/
