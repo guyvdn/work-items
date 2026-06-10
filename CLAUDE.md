@@ -8,8 +8,10 @@ A single PowerShell function, `work-items`, defined in `work-items.ps1`. It rend
 boxed terminal UI of the GitHub issues and PRs assigned to the current user, grouped by their
 project-board status, and can hand work off to an interactive Claude Code session.
 
-There is no build step, no module manifest, and no dependencies beyond PowerShell 7, the GitHub CLI
-(`gh`), and — for the `[C]`/`[N]` actions only — the `claude` CLI. The whole tool is `work-items.ps1`.
+The whole tool is `work-items.ps1` — one self-contained function. A thin module wrapper under
+`module\guyvdn-work-items\` repackages that exact file for the PowerShell Gallery (see *Packaging &
+releases* below); it adds **no logic**. Dependencies are just PowerShell 7, the GitHub CLI (`gh`),
+and — for the `[C]`/`[N]` actions only — the `claude` CLI.
 
 ## Architecture (one file, top to bottom)
 
@@ -63,3 +65,23 @@ work-items -Diagnose
 ```
 
 Requires `gh auth status` to show an authenticated account and a populated `~/.work-items.json`.
+
+## Packaging & releases
+
+The tool ships two ways from the **same** `work-items.ps1`: dot-sourcing a clone, and a PowerShell
+Gallery module. Keep that single-source rule — never fork logic into the module.
+
+- **`module\guyvdn-work-items\`** — the committed module source:
+  - `guyvdn-work-items.psd1` — manifest. Module id is `guyvdn-work-items` (Gallery uniqueness); the
+    one exported command is `work-items` (`FunctionsToExport = @('work-items')`, explicit so it
+    autoloads). The `GUID` is fixed — never regenerate it. Bump `ModuleVersion` for each release.
+  - `guyvdn-work-items.psm1` — loader only: dot-sources `work-items.ps1` (sibling when staged/
+    installed, `..\..` when imported from source) and exports the one function.
+- **`build\publish.ps1`** — stages a self-contained package into `out\guyvdn-work-items\` (manifest +
+  loader + a copy of `work-items.ps1`), runs `Test-ModuleManifest`, then publishes. `out\` is
+  git-ignored. Validate without publishing via `.\build\publish.ps1 -WhatIf`. Publish with
+  `$env:PSGALLERY_KEY` set (key from the Gallery account; never commit it).
+- **Gallery versions are immutable** — you cannot overwrite a published version. Always bump
+  `ModuleVersion` before a real publish.
+- The function name `work-items` isn't `Verb-Noun`, so `Import-Module`/publish emit a cosmetic
+  "unapproved verbs" warning. Expected; don't rename the command to silence it.

@@ -24,6 +24,9 @@ architecture overview; this file is the **how-to** for common enhancements and t
    call site — never inline prompt text.
 4. **Parallel blocks:** assign `$x = $using:Var` at the **top** of a `ForEach-Object -Parallel`
    block. `$using:` cannot be referenced inside a nested scriptblock stored in a hashtable.
+5. **One source, two delivery paths.** `work-items.ps1` is the only place logic lives. Both the
+   clone-and-dot-source path and the PowerShell Gallery module (`module\guyvdn-work-items\`) load that
+   *same* file — never duplicate or diverge code into the module wrapper.
 
 ## Recipe: add a keybinding / action
 
@@ -89,6 +92,29 @@ Copy `Select-Board` (single-choice) or `Select-Filters` (multi-toggle, multi-gro
   them into one name→rank map (`$autoOrder`, first-seen wins so each board's flow is preserved). The
   sort is: `StatusPriority[name]` (optional manual override) ?? `$autoOrder[name]` ?? `100`, with
   *No Status* pinned at `999`. `StatusPriority` defaults to `@{}` — most users never touch it.
+
+## Recipe: cut a Gallery release
+
+The tool is published as the module **`guyvdn-work-items`** from the same `work-items.ps1` that
+clone-users dot-source — `module\guyvdn-work-items\` is a thin wrapper (loader + manifest), never a
+fork. To release:
+
+1. **Bump `ModuleVersion`** in `module\guyvdn-work-items\guyvdn-work-items.psd1`. Gallery versions are
+   immutable — you can't overwrite one. Leave `GUID` untouched.
+2. **Dry run:** `.\build\publish.ps1 -WhatIf` stages `out\guyvdn-work-items\` (manifest + loader + a
+   copy of `work-items.ps1`) and runs `Test-ModuleManifest`, without publishing. Confirm the staged
+   folder is self-contained.
+3. **Publish:** `$env:PSGALLERY_KEY = '<key>'; .\build\publish.ps1`. Never commit the key (scope it to
+   the `guyvdn-work-items` package on the Gallery).
+4. Refresh `ReleaseNotes` in the manifest's `PSData` when the change is user-visible.
+
+Gotchas:
+- `FunctionsToExport` must stay an **explicit** `@('work-items')` (not `'*'`) — that's what makes the
+  command autoload, so installers never touch `$PROFILE`.
+- The `work-items` name trips an "unapproved verbs" warning on import/publish. Cosmetic — don't rename
+  the command to silence it.
+- Add a *second* public command? Add it to both `FunctionsToExport` and the psm1's
+  `Export-ModuleMember`. Otherwise keep the public surface to the one function.
 
 ## Testing & headless limits
 

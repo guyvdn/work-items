@@ -20,3 +20,7 @@ Desktop.ini
 .vscode/
 bin/
 obj/
+
+# Staging output from build\publish.ps1 (the assembled Gallery package)
+out/
+*.nupkg

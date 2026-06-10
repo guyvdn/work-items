@@ -46,8 +46,30 @@ keystroke.
 
 ## Install
 
-The tool is a single function. Make it available in every terminal session by dot-sourcing it from
-your PowerShell profile.
+### Recommended: PowerShell Gallery
+
+```powershell
+Install-Module guyvdn-work-items -Scope CurrentUser
+```
+
+The module is published as **`guyvdn-work-items`** (a unique Gallery id), but the command it provides
+is plain **`work-items`**. Thanks to module autoloading you don't have to edit your profile or
+`Import-Module` anything — open any terminal and just type:
+
+```powershell
+work-items
+```
+
+Update it later with:
+
+```powershell
+Update-Module guyvdn-work-items      # or, with PSResourceGet: Update-PSResource guyvdn-work-items
+```
+
+### Alternative: dot-source a clone
+
+Prefer to run straight from a checkout (e.g. to hack on the script)? It's a single self-contained
+function — clone anywhere and dot-source it from your PowerShell profile.
 
 1. **Clone the repo** anywhere you like:
 
@@ -77,11 +99,8 @@ your PowerShell profile.
    ```
 
 Because `$PROFILE` runs for every new session, the `work-items` function is now available in **every
-Windows Terminal tab, split pane, and `pwsh` window** — just type:
-
-```powershell
-work-items
-```
+Windows Terminal tab, split pane, and `pwsh` window** — just type `work-items`. To update this way,
+`git pull` in the clone.
 
 ## First run
 
