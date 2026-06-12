@@ -4,16 +4,25 @@ Guidance for Claude Code when working in this repository.
 
 ## What this is
 
-A single PowerShell function, `work-items`, defined in `work-items.ps1`. It renders a scrollable,
-boxed terminal UI of the GitHub issues and PRs assigned to the current user, grouped by their
-project-board status, and can hand work off to an interactive Claude Code session.
+A terminal command, `work-items`, that renders a scrollable, boxed terminal UI of the GitHub
+issues and PRs assigned to the current user, grouped by their project-board status, and can hand
+work off to an interactive Claude Code session.
 
-The whole tool is `work-items.ps1` — one self-contained function. A thin module wrapper under
-`module\guyvdn-work-items\` repackages that exact file for the PowerShell Gallery (see *Packaging &
-releases* below); it adds **no logic**. Dependencies are just PowerShell 7, the GitHub CLI (`gh`),
-and — for the `[C]`/`[N]` actions only — the `claude` CLI.
+It ships as **two implementations of the same tool**, one per platform:
 
-## Architecture (one file, top to bottom)
+- **`work-items.ps1`** — a self-contained PowerShell function (Windows). A thin module wrapper
+  under `module\guyvdn-work-items\` repackages that exact file for the PowerShell Gallery (see
+  *Packaging & releases* below); it adds **no logic**. Needs PowerShell 7.
+- **`work-items.zsh`** — a self-contained zsh function (macOS). Sourced from `~/.zshrc`,
+  clone-only, never packaged. Needs zsh 5.5+ and `jq`.
+
+Both need the GitHub CLI (`gh`) and — for the `[C]`/`[N]` actions only — the `claude` CLI.
+
+## Architecture (one function per file, top to bottom)
+
+Both implementations follow the same section order; the descriptions below name the PowerShell
+constructs, and the zsh file mirrors each section with `_wi_`-prefixed helpers (which see the main
+function's locals through zsh's dynamic scoping, like PS nested functions see their parent scope).
 
 1. **Config load** — reads `~/.work-items.json` (`ConvertFrom-Json -AsHashtable`), prompts on first
    run for `RepoRoot` + `Org`, seeds the optional knobs (`SkipProjects`, `SkipStatuses`,
@@ -35,6 +44,11 @@ and — for the `[C]`/`[N]` actions only — the `claude` CLI.
 
 ## Conventions — keep these intact
 
+- **Two implementations, one behaviour.** `work-items.ps1` and `work-items.zsh` are ports of each
+  other and may never drift apart. The two config files are the shared API: same keys, same JSON
+  shapes, read and written compatibly by both. Every feature, keybinding, config knob, or prompt
+  change lands in **both** files in the same change, with identical UX (keybindings, layout,
+  grouping and filter logic).
 - **No environment-specific values in the script.** Anything user/org/path-specific belongs in
   `~/.work-items.json` or `~/.work-items.prompts.json` (both in `$HOME`, both git-ignored by living
   outside the repo). Do not hardcode org names, project numbers, paths, or personal data.
@@ -64,12 +78,23 @@ work-items
 work-items -Diagnose
 ```
 
+```zsh
+# zsh implementation — parse check (no execution):
+zsh -n ./work-items.zsh && echo OK
+
+# Load and run (must be sourced, not executed):
+source ./work-items.zsh
+work-items
+work-items -Diagnose
+```
+
 Requires `gh auth status` to show an authenticated account and a populated `~/.work-items.json`.
 
 ## Packaging & releases
 
-The tool ships two ways from the **same** `work-items.ps1`: dot-sourcing a clone, and a PowerShell
-Gallery module. Keep that single-source rule — never fork logic into the module.
+Packaging only applies to the PowerShell implementation; `work-items.zsh` is always used straight
+from a clone. `work-items.ps1` ships two ways from the **same** file: dot-sourcing a clone, and a
+PowerShell Gallery module. Keep that single-source rule — never fork logic into the module.
 
 - **`module\guyvdn-work-items\`** — the committed module source:
   - `guyvdn-work-items.psd1` — manifest. Module id is `guyvdn-work-items` (Gallery uniqueness); the

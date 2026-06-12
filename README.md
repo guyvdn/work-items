@@ -4,10 +4,13 @@ A themed terminal dashboard for the GitHub issues and pull requests assigned to 
 
 ![work-items — a Dracula-themed terminal dashboard of your assigned GitHub issues and pull requests, grouped by project-board status](docs/screenshot.png)
 
-`work-items` is a single, self-contained PowerShell function that lists your open issues and PRs in
-a scrollable, boxed terminal UI — grouped by project-board status, colour-matched to your terminal
-theme, and wired to hand work off to [Claude Code](https://www.anthropic.com/claude-code) with a
-keystroke.
+`work-items` lists your open issues and PRs in a scrollable, boxed terminal UI — grouped by
+project-board status, colour-matched to your terminal theme, and wired to hand work off to
+[Claude Code](https://www.anthropic.com/claude-code) with a keystroke.
+
+It ships as two implementations of the same tool — **`work-items.ps1`** (a PowerShell function, for
+Windows) and **`work-items.zsh`** (a zsh function, for macOS — no PowerShell required) — that share
+the same config files, keybindings, layout, and behaviour. Pick the one that matches your platform.
 
 ## Features
 
@@ -27,16 +30,41 @@ keystroke.
 
 ## Requirements
 
-| Tool | Why | Notes |
-|------|-----|-------|
-| **PowerShell 7+** (`pwsh`) | The script uses `ForEach-Object -Parallel`. | Windows, macOS, or Linux. |
-| **GitHub CLI** (`gh`) | All data is fetched via `gh search` and `gh api graphql`. | Run `gh auth login` once; the `read:project` scope is needed for board status. |
-| A terminal with ANSI colour | Rendering uses ANSI escape sequences and the alternate screen buffer. | Windows Terminal recommended; most modern terminals work. |
-| **Claude Code** (`claude`) | *Optional* — only used by the `[C]` and `[N]` actions. | Everything else works without it. |
+| Tool | Needed by | Notes |
+|------|-----------|-------|
+| **GitHub CLI** (`gh`) | both | All data is fetched via `gh search` and `gh api graphql`. Run `gh auth login` once; the `read:project` scope is needed for board status. |
+| **PowerShell 7+** (`pwsh`) | `work-items.ps1` | The script uses `ForEach-Object -Parallel`. |
+| **zsh 5.5+** and **`jq`** | `work-items.zsh` | zsh ships with macOS; `brew install jq` if `jq` is missing. |
+| A terminal with ANSI colour | both | Rendering uses ANSI escape sequences and the alternate screen buffer. Windows Terminal recommended on Windows; any modern macOS terminal works. |
+| **Claude Code** (`claude`) | both, *optional* | Only used by the `[C]` and `[N]` actions; everything else works without it. |
 
 ## Install
 
-### Recommended: PowerShell Gallery
+### macOS: source the zsh version
+
+No PowerShell needed on macOS — `work-items.zsh` is a native zsh implementation of the same tool.
+
+1. **Install the dependencies** (skip what you already have): `brew install gh jq`, then run
+   `gh auth login` once.
+
+2. **Clone the repo** anywhere you like:
+
+   ```zsh
+   git clone https://github.com/guyvdn/work-items.git ~/tools/work-items
+   ```
+
+3. **Source it from your `~/.zshrc`** — sourcing (not executing) matters: the `[C]`/`[N]` hand-off
+   leaves your shell parked in `RepoRoot` afterwards, which only works for a sourced function:
+
+   ```zsh
+   source ~/tools/work-items/work-items.zsh
+   ```
+
+4. **Open a new terminal** (or `source ~/.zshrc`) and type `work-items`.
+
+To update, `git pull` in the clone.
+
+### Windows — recommended: PowerShell Gallery
 
 ```powershell
 Install-Module guyvdn-work-items -Scope CurrentUser
@@ -56,7 +84,7 @@ Update it later with:
 Update-Module guyvdn-work-items      # or, with PSResourceGet: Update-PSResource guyvdn-work-items
 ```
 
-### Alternative: dot-source a clone
+### Windows — alternative: dot-source a clone
 
 Prefer to run straight from a checkout (e.g. to hack on the script)? It's a single self-contained
 function — clone anywhere and dot-source it from your PowerShell profile.
@@ -107,7 +135,9 @@ add your project numbers to the config (below).
 ## Configuration
 
 Two JSON files in your home directory control everything environment-specific. They are created
-automatically and are **never** part of this repo, so your settings stay private.
+automatically and are **never** part of this repo, so your settings stay private. Both
+implementations read and write the same files, so a config tuned on one platform carries over to
+the other.
 
 ### `~/.work-items.json` — behaviour
 
@@ -156,8 +186,8 @@ built-in default on the next run — your customised prompts are left untouched.
 
 ### What you *can't* change via JSON
 
-These are intentionally in the script (`work-items.ps1`); edit it directly if you want to change
-them:
+These are intentionally in the scripts (`work-items.ps1` / `work-items.zsh`); edit them directly if
+you want to change them:
 
 - **Colours / theme mapping** — accents use fixed ANSI colour *slots* (so each terminal applies its
   own scheme); body text uses the default foreground and the faint attribute.
