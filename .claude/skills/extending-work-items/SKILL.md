@@ -1,13 +1,16 @@
 ---
 name: extending-work-items
-description: Recipes and conventions for changing work-items.ps1 — adding keybindings/actions, alt-screen pickers, config knobs, status logic, plus testing limits and gotchas. Use when modifying the work-items terminal dashboard.
+description: Recipes and conventions for changing work-items.ps1 and work-items.zsh — adding keybindings/actions, alt-screen pickers, config knobs, status logic, plus testing limits and gotchas. Use when modifying the work-items terminal dashboard.
 ---
 
 # Extending work-items
 
-`work-items.ps1` is one self-contained PowerShell function rendering a terminal dashboard of your
-assigned GitHub issues/PRs. This skill is the playbook for changing it. Read `CLAUDE.md` for the
-architecture overview; this file is the **how-to** for common enhancements and the traps to avoid.
+`work-items` is one self-contained function rendering a terminal dashboard of your assigned GitHub
+issues/PRs, implemented twice: `work-items.ps1` (PowerShell, Windows) and `work-items.zsh` (zsh,
+macOS). This skill is the playbook for changing it. Read `CLAUDE.md` for the architecture overview;
+this file is the **how-to** for common enhancements and the traps to avoid. Recipes show the
+PowerShell shape; the zsh file mirrors every section with `_wi_`-prefixed helpers — apply each
+recipe to **both** files.
 
 ## Golden rules (don't break these)
 
@@ -24,9 +27,13 @@ architecture overview; this file is the **how-to** for common enhancements and t
    call site — never inline prompt text.
 4. **Parallel blocks:** assign `$x = $using:Var` at the **top** of a `ForEach-Object -Parallel`
    block. `$using:` cannot be referenced inside a nested scriptblock stored in a hashtable.
-5. **One source, two delivery paths.** `work-items.ps1` is the only place logic lives. Both the
-   clone-and-dot-source path and the PowerShell Gallery module (`module\guyvdn-work-items\`) load that
-   *same* file — never duplicate or diverge code into the module wrapper.
+5. **One source, two delivery paths.** `work-items.ps1` is the only place PowerShell logic lives.
+   Both the clone-and-dot-source path and the PowerShell Gallery module (`module\guyvdn-work-items\`)
+   load that *same* file — never duplicate or diverge code into the module wrapper.
+6. **Two implementations, one behaviour.** `work-items.ps1` and `work-items.zsh` are ports of each
+   other. The config files are the shared API (same keys, same JSON shapes, written compatibly by
+   both); every feature, keybinding, config knob, or prompt change lands in **both** files in the
+   same change, with identical keybindings and layout. Never let one implementation drift ahead.
 
 ## Recipe: add a keybinding / action
 
@@ -152,7 +159,7 @@ into a now-public repo. Rebuild it from a small self-contained HTML file rendere
 
 - **Parse check** (safe, fast):
   `[System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$null,[ref]$null)` then inspect
-  the errors `[ref]`.
+  the errors `[ref]`. For the zsh implementation: `zsh -n work-items.zsh`.
 - **The TUI and `-Diagnose` cannot run headless.** They call `[Console]::SetCursorPosition`, which
   throws `The handle is invalid` when stdout is redirected (as it is under tool/CI capture). Verify
   logic by **reproducing the data path in isolation** (run the `gh` queries + the transform in a
